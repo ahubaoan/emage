@@ -1,3 +1,5 @@
+//go:build ignore
+// +build ignore
 #include "com.h"
 
 struct event {
@@ -8,10 +10,13 @@ struct event {
     u32     ppid;
     u32     sig;
     u32     exit_code;
-    char    comm[16];
+    u8      comm[16];
 };
 
-const volatile u64 target_pid = 0
+const volatile bool filter_cg = false;
+//const volatile bool trace_by_process = false;
+const volatile bool trace_failed_only = false;
+const volatile u32 target_pid = 0;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_CGROUP_ARRAY);
@@ -29,19 +34,23 @@ struct {
 SEC("tracepoint/sched/sched_process_exit")
 int sched_process_exit(void *ctx)
 {
-	u64 id = bpf_get_current_pid_tgid();
-	u32 pid = id >> 32;
-	u32 tid = (__u32)pid_tgid;
+	u64 pid_tgid = bpf_get_current_pid_tgid();
+	u32 tid = pid_tgid;
+	u32 pid = pid_tgid >> 32;
 	int exit_code;
 	struct task_struct *task;
 	struct event event = {};
 
+//    bpf_printk("filter_cg=%d target_pid=%d, trace_failed_only=%d\n",filter_cg, target_pid, trace_failed_only);
+   
 	if (filter_cg && !bpf_current_task_under_cgroup(&cgroup_map, 0))
 		return 0;
 
 	if (target_pid && target_pid != pid)
 		return 0;
 
+//	if (trace_by_process && pid != tid)
+//		return 0;
 
 	task = (struct task_struct *)bpf_get_current_task();
 	exit_code = BPF_CORE_READ(task, exit_code);

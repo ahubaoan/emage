@@ -2,7 +2,7 @@
 //go:build arm64be || armbe || mips || mips64 || mips64p32 || ppc64 || s390 || s390x || sparc || sparc64
 // +build arm64be armbe mips mips64 mips64p32 ppc64 s390 s390x sparc sparc64
 
-package execsnoop
+package exitsnoop
 
 import (
 	"bytes"
@@ -58,7 +58,7 @@ type bpfSpecs struct {
 //
 // It can be passed ebpf.CollectionSpec.Assign.
 type bpfProgramSpecs struct {
-	SysEnterExecve *ebpf.ProgramSpec `ebpf:"sys_enter_execve"`
+	SchedProcessExit *ebpf.ProgramSpec `ebpf:"sched_process_exit"`
 }
 
 // bpfMapSpecs contains maps before they are loaded into the kernel.
@@ -104,12 +104,12 @@ func (m *bpfMaps) Close() error {
 //
 // It can be passed to loadBpfObjects or ebpf.CollectionSpec.LoadAndAssign.
 type bpfPrograms struct {
-	SysEnterExecve *ebpf.Program `ebpf:"sys_enter_execve"`
+	SchedProcessExit *ebpf.Program `ebpf:"sched_process_exit"`
 }
 
 func (p *bpfPrograms) Close() error {
 	return _BpfClose(
-		p.SysEnterExecve,
+		p.SchedProcessExit,
 	)
 }
 

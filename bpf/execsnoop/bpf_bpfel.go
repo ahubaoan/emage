@@ -38,12 +38,13 @@ func loadBpfObjects(obj interface{}, opts *ebpf.CollectionOptions) error {
 	if err != nil {
 		return err
 	}
-	if err := RewriteConstatns(obj.(*bpfObjects), spec); err != nil {
-		return err
-	}
-	return spec.LoadAndAssign(obj, opts)
-}
 
+	if err := RewriteConstants(obj.(*bpfObjects), spec); err != nil {
+        return err
+    }
+
+    return spec.LoadAndAssign(obj, opts)
+}
 
 // bpfSpecs contains maps and programs before they are loaded into the kernel.
 //

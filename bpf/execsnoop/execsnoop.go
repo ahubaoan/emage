@@ -1,10 +1,6 @@
 //go:build linux
 // +build linux
 
-// This program demonstrates attaching an eBPF program to a kernel tracepoint.
-// The eBPF program will be attached to the page allocation tracepoint and
-// prints out the number of times it has been reached. The tracepoint fields
-// are printed into /sys/kernel/debug/tracing/trace_pipe.
 package execsnoop
 
 import (
@@ -13,6 +9,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"github.com/ahubaoan/emage/config/module"
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/ringbuf"
@@ -31,8 +28,9 @@ type bpfEvent struct {
 }
 
 type ExecSnoop struct {
-	Ctx        context.Context
-	CancelFunc context.CancelFunc
+	FilterCroup int64
+	Ctx         context.Context
+	CancelFunc  context.CancelFunc
 }
 
 var Consts map[string]interface{}
@@ -41,7 +39,7 @@ func init() {
 	Consts = make(map[string]interface{})
 }
 
-func RewriteConstatns(obj *bpfObjects, spec *ebpf.CollectionSpec) error {
+func RewriteConstants(obj *bpfObjects, spec *ebpf.CollectionSpec) error {
 	rodata := spec.Maps[".rodata"]
 	if rodata != nil && rodata.BTF != nil {
 		err := spec.RewriteConstants(obj.Consts)
@@ -53,15 +51,7 @@ func RewriteConstatns(obj *bpfObjects, spec *ebpf.CollectionSpec) error {
 	return nil
 }
 
-func (e *ExecSnoop) Exit() {
-	e.CancelFunc()
-}
-
-func (e *ExecSnoop) Start() {
-
-	e.Ctx, e.CancelFunc = context.WithCancel(context.TODO())
-
-	Consts["filter_cg"] = int64(4)
+func Start(ctx context.Context, c module.ExecSnoopKern) {
 
 	// Load pre-compiled programs and maps into the kernel.
 	objs := bpfObjects{Consts: Consts}
@@ -93,7 +83,7 @@ func (e *ExecSnoop) Start() {
 	// Close the reader when the process receives a signal, which will exit
 	// the read loop.
 	go func() {
-		<-e.Ctx.Done()
+		<-ctx.Done()
 
 		if err := rd.Close(); err != nil {
 			log.Fatalf("closing ringbuf reader: %s", err)
