@@ -16,7 +16,7 @@ struct event {
 const volatile bool filter_cg = false;
 //const volatile bool trace_by_process = false;
 const volatile bool trace_failed_only = false;
-const volatile u32 target_pid = 0;
+const volatile u64 target_pid = 0;
 
 struct {
 	__uint(type, BPF_MAP_TYPE_CGROUP_ARRAY);
@@ -41,7 +41,7 @@ int sched_process_exit(void *ctx)
 	struct task_struct *task;
 	struct event event = {};
 
-//    bpf_printk("filter_cg=%d target_pid=%d, trace_failed_only=%d\n",filter_cg, target_pid, trace_failed_only);
+    bpf_printk("filter_cg=%d target_pid=%d, trace_failed_only=%d\n",filter_cg, target_pid, trace_failed_only);
    
 	if (filter_cg && !bpf_current_task_under_cgroup(&cgroup_map, 0))
 		return 0;

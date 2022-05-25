@@ -2,7 +2,7 @@
 // +build ignore
 #include "com.h"
 
-const volatile u64  filter_cg = 0;
+const volatile bool filter_cg = false;
 
 struct event {
     u32     pid;
@@ -45,6 +45,8 @@ int sys_enter_execve(struct execve_args *args)
     u32 ret;
     u32 pid;
 
+//    bpf_printk("filter_cg=%d\n", filter_cg);
+
     if (filter_cg && !bpf_current_task_under_cgroup(&cgroup_map, 0))
         return 0;
 
@@ -60,8 +62,6 @@ int sys_enter_execve(struct execve_args *args)
     e->ppid = BPF_CORE_READ(task, real_parent, tgid);
 
     bpf_probe_read_user_str(e->filename, sizeof(e->filename), args->filename); // 用于读取数据
-
-    bpf_printk("filter_cg=%d\n", filter_cg);
 
     bpf_ringbuf_submit(e, 0);
 

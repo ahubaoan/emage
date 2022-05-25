@@ -1,0 +1,40 @@
+
+log:
+
+  # 0=Epoch, 1=iso8601
+  time_type: 1
+
+  # shoud be 'json' or 'console'
+  format_type: "json"
+
+  # DebugLevel = 0, logs are typically voluminous, and are usually disabled in production.
+  # InfoLevel = 1, the default logging priority.
+  # WarnLevel = 2, logs are more important than Info, but don't need individual human review.
+  # ErrorLevel = 3, logs are high-priority. If an application is running smoothly, it shouldn't generate any error-level logs.
+  # DPanicLevel = 4, logs are particularly important errors. In development the logger panics after writing the message.
+  # PanicLevel = 5, logs a message, then panics.
+  # FatalLevel = 6, logs a message, then calls os.Exit(1).
+  debug_level: 1
+
+  # where output to stdout
+  out_stdout: true
+
+  # output log to file, and file auto rotate
+  out_file_rotate:
+    enable: true
+    filename: "/tmp/test/test.log"
+    max_size: 10 # 10M bytes
+    max_backups: 5 # max 5 log files exist, delete other
+    max_age: 30 # max keep logfiles by day
+    compress: false # where use gzip to compress log file
+
+bpf_log:
+  use_log: true # all configs use the same as log  
+
+kern:
+    execsnoop:
+        filtercroup: false
+    exitsnoop:
+        filtercroup: false
+        targetpid: 0
+        tracefailedonly: false

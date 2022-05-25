@@ -5,10 +5,17 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"fmt"
+	"github.com/ahubaoan/emage/config"
+	"github.com/ahubaoan/emage/pkg/logger"
+	"github.com/cilium/ebpf/rlimit"
+	"go.uber.org/zap"
 	"os"
 
 	"github.com/spf13/cobra"
 )
+
+var confFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -17,7 +24,9 @@ var rootCmd = &cobra.Command{
 	Long:  `A ebpf app can be used for monitoring, security, auditing, etc.. Customized configuration can realize these gons.`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("1111")
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -30,12 +39,20 @@ func Execute() {
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	rootCmd.PersistentFlags().StringVarP(&confFile, "conf_file", "f", "", "choose a config file to start ")
+}
 
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.emage.yaml)")
+func EnvInit() {
+	if confFile != "" {
+		fmt.Println("init config from file ", confFile)
+		config.InitConfig(confFile)
+	} else {
+		fmt.Println("init config by default set")
+		config.InitConfigDefault()
+	}
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	// Allow the current process to lock memory for eBPF resources.
+	if err := rlimit.RemoveMemlock(); err != nil {
+		logger.ComLog.Fatal("execsnoopCmd RemoveMemlock error", zap.Error(err))
+	}
 }

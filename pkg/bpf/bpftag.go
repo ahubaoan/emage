@@ -17,7 +17,7 @@ func GetBpfCString(obj interface{}, FiledName string) (string, bool) {
 	return "", false
 }
 
-func GetDefaultVal(obj interface{}, FiledName string) interface{} {
+func GetDefaultVal(obj interface{}, FiledName string) any {
 	filed, find := reflect.ValueOf(obj).Type().FieldByName(FiledName)
 	val := ""
 	if find {

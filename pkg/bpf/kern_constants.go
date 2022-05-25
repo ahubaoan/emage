@@ -6,8 +6,8 @@ import (
 	"strconv"
 )
 
-func KernConstantsGen(obj interface{}) (err error, constantsMap map[string]interface{}) {
-	constantsMap = make(map[string]interface{})
+func KernConstantsGen(obj interface{}) map[string]interface{} {
+	constantsMap := make(map[string]interface{})
 
 	v := reflect.ValueOf(obj)
 
@@ -50,7 +50,6 @@ func KernConstantsGen(obj interface{}) (err error, constantsMap map[string]inter
 			// 如果没有指定值，则用默认值替代
 			value = defaultValue
 		}
-
 	}
-	return
+	return constantsMap
 }
